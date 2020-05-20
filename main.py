@@ -1,13 +1,19 @@
 import requests, threading
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from flask import Flask, render_template, request
-webhookUrl = 'https://discord.com/api/webhooks/712487108299718666/g1z8UsfR6K-bqGPtrOtVDnD0FBoV51o7nksgJ70JimL1knSICrpGWBbKlJXwIxkkKfag'
+webhookUrl = 'https://discordapp.com/api/webhooks/712647826777309185/02hRwcoHIWu3SRyXXA1htmHlA_otxxJx-63DqE3q8cwvyfXlAAsKZeGdlfj_ZbHMNxhR'
+webhookUrl2 = 'https://discordapp.com/api/webhooks/712648700559884322/xXqtrixh9sVvdZIovRERRPRYvLosY2I3tP3uat7gLp2TyFOjkoskC7MKmIDGA93NRf_h'
 app = Flask(__name__)
 jobs = []
 @app.route("/")
 def home():
     return render_template("index.html")
 
+def sendHook(title, content, url):
+    webhook = DiscordWebhook(url=url)
+    embed = DiscordEmbed(title=title,description= content + '\nSizeer by jxn',color=int('009000'))
+    webhook.add_embed(embed)
+    webhook.execute()
 def monitor(link):
     headers = {
     'authority': 'sklep.sizeer.com',
@@ -23,16 +29,12 @@ def monitor(link):
     response = requests.get(link, headers=headers)
     if 'Powiadom o dostępności produktu' in response.text:
         inStock = False
-        webhook = DiscordWebhook(url=webhookUrl)
-        embed = DiscordEmbed(title='Sizeer - Monitor Started!', description='Monitor started on product ' + link + '. \nCurrent status: OOS \nSizeer by jxn', color=int('009000'))
-        webhook.add_embed(embed)
-        webhook.execute()
+        sendHook(title='Sizeer - Monitor Started!',content='Monitor started on product ' + link + '\nCurrent Status: OOS\nSizeer by jxn', url=webhookUrl)
+        sendHook(title='Sizeer - monitor started!', content='Monitor started on product '+ link + '\nCurrent Status: OOS\nSizeer by jxn', url=webhookUrl2)
     else:
         inStock = True
-        webhook = DiscordWebhook(url=webhookUrl)
-        embed = DiscordEmbed(title='Sizeer - Monitor Started!', description='Monitor started on product ' + link + '. \nCurrent status: IN STOCK \nSizeer by jxn', color=int('009000'))
-        webhook.add_embed(embed)
-        webhook.execute()
+        sendHook(title='Sizeer - Monitor Started!', content='Monitor started on product ' + link + '\nCurrent Status: In Stock\nSizeer by jxn', url=webhookUrl)
+        sendHook(title='Sizeer - monitor started!', content='Monitor started on product ' + link + '\nCurrent Status: In Stock\nSizeer by jxn', url=webhookUrl2)
 
     while not inStock:
         try:
@@ -41,10 +43,12 @@ def monitor(link):
                 print("No restock found on " + link + "...")
             else:
                 print("Restock detected on product" + link + "... Sending webhooks...")
-                webhook = DiscordWebhook(url=webhookUrl)
-                embed = DiscordEmbed(title='Sizeer - Restock!', description='Restock on product ' + link + '. Act fast!', color=int('009000'))
-                webhook.add_embed(embed)
-                webhook.execute()
+                sendHook(title='Sizeer - Restock Detected!',
+                         content='restock detected on product  '  + link + '\nAct fast!\nSizeer by jxn',
+                         url=webhookUrl)
+                sendHook(title='Sizeer - Restock Detected!',
+                         content='Restock detected on product  '  + link + '\nAct fast!\nSizeer by jxn',
+                         url=webhookUrl2)
                 inStock = True
         except:
             pass
@@ -76,25 +80,31 @@ def monSku(prod):
     response = requests.get('https://sklep.sizeer.com/jordan-air-1', headers=headers).text
     if prod in response:
         inStock = True
-        webhook = DiscordWebhook(url=webhookUrl)
-        embed = DiscordEmbed(title='Sizeer - Monitor Started!', description='Monitor started on product ' + prod + '. \nCurrent status: Available on AJ1 Portal Page \nSizeer by jxn', color=int('009000'))
-        webhook.add_embed(embed)
-        webhook.execute()
+        sendHook(title='Sizeer - Monitor Started!',
+                 content='Monitor started on product  ' + prod + '\nCurent status: Available on AJ1 Portal \nSizeer by jxn',
+                 url=webhookUrl)
+        sendHook(title='Sizeer - Monitor Started!',
+                 content='Monitor started on product  ' + prod + '\nCurent status: Available on AJ1 Portal \nSizeer by jxn',
+                 url=webhookUrl2)
     if prod not in response:
         inStock = False
-        webhook = DiscordWebhook(url=webhookUrl)
-        embed = DiscordEmbed(title='Sizeer - Monitor Started!', description='Monitor started on product '  + prod + '. \nCurrent status: Unavailable \nSizeer by jxn', color=int('009000'))
-        webhook.add_embed(embed)
-        webhook.execute()
+        sendHook(title='Sizeer - Monitor Started!',
+                 content='Monitor started on product  ' + prod + '\nCurent status: Unavailable on AJ1 Portal \nSizeer by jxn',
+                 url=webhookUrl)
+        sendHook(title='Sizeer - Monitor Started!',
+                 content='Monitor started on product  ' + prod + '\nCurent status: Unavailable on AJ1 Portal \nSizeer by jxn',
+                 url=webhookUrl2)
     while not inStock:
         try:
             response = requests.get('https://sklep.sizeer.com/jordan-air-1', headers=headers).text
             if prod in response:
                 print("Product " + prod + " is now available on the AJ1 portal. ")
-                webhook = DiscordWebhook(url=webhookUrl)
-                embed = DiscordEmbed(title='Sizeer - SKU Monitor!', description='Product ' + prod +  ' now available on AJ1 portal. Act fast!', color=int('009000'))
-                webhook.add_embed(embed)
-                webhook.execute()
+                sendHook(title='Sizeer - SKU Monitor!',
+                         content='Product  ' + prod + 'is now available on the AJ1 portal page.\nSizeer by jxn',
+                         url=webhookUrl)
+                sendHook(title='Sizeer - SKU Monitor!',
+                         content='Product  ' + prod + 'is now available on the AJ1 portal page.\nSizeer by jxn',
+                         url=webhookUrl2)
                 inStock = True
             else:
                 print("Product " + prod + " still unavailable")
